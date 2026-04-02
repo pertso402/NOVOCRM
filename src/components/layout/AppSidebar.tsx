@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboard, Users, BarChart3, FileText,
@@ -46,10 +46,15 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path;
   const isSectionActive = (slug: string) => location.pathname.startsWith(`/${slug}/`);
 
-  const activeSlug = pipelines?.find(p => isSectionActive(p.slug))?.slug;
-  if (activeSlug && !expandedSections.includes(activeSlug)) {
-    setExpandedSections(prev => [...prev, activeSlug]);
-  }
+  // Expand section automatically when on a related page
+  useEffect(() => {
+    if (pipelines) {
+      const activeSlug = pipelines.find(p => isSectionActive(p.slug))?.slug;
+      if (activeSlug && !expandedSections.includes(activeSlug)) {
+        setExpandedSections(prev => [...prev, activeSlug]);
+      }
+    }
+  }, [location.pathname, pipelines]);
 
   return (
     <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
