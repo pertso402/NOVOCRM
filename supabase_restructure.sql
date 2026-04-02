@@ -1,11 +1,29 @@
 -- ################################################################################
--- # CRM RESTRUCTURING SCRIPT - LEADS TABLE
+-- # CRM RESTRUCTURING SCRIPT - LEADS TABLE (FIXED VERSION)
 -- ################################################################################
 -- # Este script consolida todos os campos de status (booleanos legados) 
 -- # na coluna 'stage' e limpa a estrutura para o novo sistema.
 -- ################################################################################
 
--- 1. Garantir que a coluna 'stage' e 'temperatura' existam
+-- 1. Garantir que os valores do ENUM 'lead_stage' existam (se for enum)
+-- Tenta adicionar os valores novos ao tipo se ele já for um ENUM
+DO $$ 
+BEGIN
+    -- Se o tipo existir, garantimos os valores
+    ALTER TYPE public.lead_stage ADD VALUE IF NOT EXISTS 'ligacao_feita';
+    ALTER TYPE public.lead_stage ADD VALUE IF NOT EXISTS 'video_enviado';
+    ALTER TYPE public.lead_stage ADD VALUE IF NOT EXISTS 'fechamento_marcado';
+    ALTER TYPE public.lead_stage ADD VALUE IF NOT EXISTS 'diagnostico_marcado';
+    ALTER TYPE public.lead_stage ADD VALUE IF NOT EXISTS 'follow_up';
+    ALTER TYPE public.lead_stage ADD VALUE IF NOT EXISTS 'interessado';
+    ALTER TYPE public.lead_stage ADD VALUE IF NOT EXISTS 'canal_aberto';
+EXCEPTION
+    WHEN undefined_object THEN
+        -- Se o tipo não existir, ignoramos pois usaremos TEXT
+        NULL;
+END $$;
+
+-- 2. Garantir que as colunas existam
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='stage') THEN
@@ -29,10 +47,10 @@ BEGIN
     END IF;
 END $$;
 
--- 2. Migrar dados dos booleanos legados para a coluna 'stage'
--- Só atualiza se o stage for 'novo' ou nulo, para não sobrepor dados já migrados.
+-- 3. Migrar dados dos booleanos legados para a coluna 'stage'
+-- Usamos um CAST (::public.lead_stage) se for enum, senão funciona como TEXT
 UPDATE public.leads 
-SET stage = CASE
+SET stage = (CASE
     WHEN negocio_fechado = true THEN 'negocio_fechado'
     WHEN negocio_perdido = true THEN 'negocio_perdido'
     WHEN fechamento_marcado = true THEN 'fechamento_marcado'
@@ -43,22 +61,10 @@ SET stage = CASE
     WHEN "Apresentação criada" = true THEN 'ligacao_feita'
     WHEN canal_aberto = true THEN 'canal_aberto'
     ELSE 'novo'
-END
-WHERE stage = 'novo' OR stage IS NULL;
+END)::text::public.lead_stage
+WHERE (stage::text = 'novo' OR stage IS NULL);
 
--- 3. Limpeza de campos legados (OPCIONAL - DESCOMENTE SE TIVER CERTEZA)
--- Para manter a segurança, vamos apenas renomear para 'old_' em vez de deletar.
--- ALTER TABLE public.leads RENAME COLUMN canal_aberto TO z_old_canal_aberto;
--- ALTER TABLE public.leads RENAME COLUMN interessado TO z_old_interessado;
--- ALTER TABLE public.leads RENAME COLUMN follow_up TO z_old_follow_up;
--- ALTER TABLE public.leads RENAME COLUMN diagnostico_marcado TO z_old_diagnostico_marcado;
--- ALTER TABLE public.leads RENAME COLUMN fechamento_marcado TO z_old_fechamento_marcado;
--- ALTER TABLE public.leads RENAME COLUMN negocio_fechado TO z_old_negocio_fechado;
--- ALTER TABLE public.leads RENAME COLUMN negocio_perdido TO z_old_negocio_perdido;
--- ALTER TABLE public.leads RENAME COLUMN "Apresentação criada" TO "z_old_apresentacao_criada";
--- ALTER TABLE public.leads RENAME COLUMN "Documento/proposta Enviada" TO "z_old_proposta_enviada";
-
--- 4. Criar View de Follow-up (se não existir)
+-- 4. Criar View de Follow-up 
 CREATE OR REPLACE VIEW public.v_followup_hoje AS
 SELECT
   id,
@@ -75,11 +81,9 @@ SELECT
   created_at
 FROM public.leads
 WHERE
-  stage NOT IN ('negocio_fechado', 'negocio_perdido')
+  stage::text NOT IN ('negocio_fechado', 'negocio_perdido')
   AND (proximo_followup IS NULL OR proximo_followup <= (now() AT TIME ZONE 'UTC'))
 ORDER BY
   CASE temperatura WHEN 'quente' THEN 1 WHEN 'morno' THEN 2 ELSE 3 END,
   proximo_followup ASC NULLS LAST;
 
--- 5. Mensagem de sucesso
--- SQL executado com sucesso!
