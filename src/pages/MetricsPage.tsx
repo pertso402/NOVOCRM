@@ -82,7 +82,7 @@ export default function MetricsPage() {
           />
           <MetricCard
             label="Taxa de Fechamento"
-            value={`${summary?.conversionRates.negocioFechado.toFixed(1) || 0}%`}
+            value={`${summary?.conversionRates?.negocioFechado?.toFixed(1) || 0}%`}
             icon={<Target className="w-5 h-5" />}
           />
         </div>
@@ -91,32 +91,32 @@ export default function MetricsPage() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <MetricCard
             label="Canal Aberto"
-            value={`${summary?.conversionRates.canalAberto.toFixed(1) || 0}%`}
+            value={`${summary?.conversionRates?.canalAberto?.toFixed(1) || 0}%`}
             className="text-center"
           />
           <MetricCard
             label="Ligação Feita"
-            value={`${summary?.conversionRates.ligacaoFeita.toFixed(1) || 0}%`}
+            value={`${summary?.conversionRates?.ligacaoFeita?.toFixed(1) || 0}%`}
             className="text-center"
           />
           <MetricCard
             label="Vídeo Enviado"
-            value={`${summary?.conversionRates.videoEnviado.toFixed(1) || 0}%`}
+            value={`${summary?.conversionRates?.videoEnviado?.toFixed(1) || 0}%`}
             className="text-center"
           />
           <MetricCard
             label="Diagnóstico"
-            value={`${summary?.conversionRates.diagnosticoMarcado.toFixed(1) || 0}%`}
+            value={`${summary?.conversionRates?.diagnosticoMarcado?.toFixed(1) || 0}%`}
             className="text-center"
           />
           <MetricCard
             label="Fechamento"
-            value={`${summary?.conversionRates.fechamentoMarcado.toFixed(1) || 0}%`}
+            value={`${summary?.conversionRates?.fechamentoMarcado?.toFixed(1) || 0}%`}
             className="text-center"
           />
           <MetricCard
             label="Negócio Fechado"
-            value={`${summary?.conversionRates.negocioFechado.toFixed(1) || 0}%`}
+            value={`${summary?.conversionRates?.negocioFechado?.toFixed(1) || 0}%`}
             className="text-center"
           />
         </div>

@@ -61,7 +61,7 @@ function PipelineCard({ slug, name, icon, color }: { slug: string; name: string;
         </div>
         <div className="text-center p-3 rounded-lg bg-secondary/50">
           <p className="text-2xl font-bold">
-            {metrics?.conversionRates.negocioFechado.toFixed(0) || 0}%
+            {metrics?.conversionRates?.negocioFechado?.toFixed(0) || 0}%
           </p>
           <p className="text-xs text-muted-foreground">Fechamento</p>
         </div>

@@ -74,7 +74,7 @@ export function useFollowupsHoje(niche: Niche) {
         .from('leads')
         .select('*')
         .eq('niche', niche)
-        .not('stage', 'in', '("negocio_fechado","negocio_perdido")')
+        .not('stage', 'in', '(negocio_fechado,negocio_perdido)')
         .or(`proximo_followup.is.null,proximo_followup.lte.${agora}`)
         .order('temperatura', { ascending: true }) // frio -> morno -> quente (invertido em UI)
         .order('proximo_followup', { ascending: true, nullsFirst: false });

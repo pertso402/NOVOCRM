@@ -44,6 +44,15 @@ export interface Lead {
   motivo_ganho: Record<string, any> | null;
   obs?: string | null;
 
+  // Booleans legados — Mantidos para prevenir crash em componentes que não atualizei
+  canal_aberto?: boolean;
+  interessado?: boolean;
+  follow_up?: boolean;
+  diagnostico_marcado?: boolean;
+  fechamento_marcado?: boolean;
+  negocio_fechado?: boolean;
+  negocio_perdido?: boolean;
+
   created_at: string;
   updated_at?: string;
 }
