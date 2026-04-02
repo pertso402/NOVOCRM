@@ -1,0 +1,1 @@
+ALTER TABLE public.lead_extras ADD COLUMN categoria_lead text DEFAULT NULL;

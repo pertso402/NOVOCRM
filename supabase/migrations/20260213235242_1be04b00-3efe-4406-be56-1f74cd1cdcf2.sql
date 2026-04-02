@@ -1,0 +1,1 @@
+ALTER TABLE public.lead_extras ADD COLUMN observacao text DEFAULT NULL;

@@ -1,0 +1,258 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Premium Dark Dashboard Design System */
+
+@layer base {
+  :root {
+    --background: 220 16% 6%;
+    --foreground: 210 20% 95%;
+
+    --card: 220 16% 8%;
+    --card-foreground: 210 20% 95%;
+
+    --popover: 220 16% 10%;
+    --popover-foreground: 210 20% 95%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 220 16% 6%;
+
+    --secondary: 220 16% 12%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 14% 55%;
+
+    --accent: 199 75% 40%;
+    --accent-foreground: 210 20% 95%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 20% 95%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 210 20% 95%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 220 16% 6%;
+
+    --border: 220 14% 16%;
+    --input: 220 14% 16%;
+    --ring: 199 89% 48%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 16% 5%;
+    --sidebar-foreground: 215 14% 65%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 220 16% 6%;
+    --sidebar-accent: 220 16% 10%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 220 14% 12%;
+    --sidebar-ring: 199 89% 48%;
+
+    /* Custom tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(199 89% 48%), hsl(199 89% 38%));
+    --gradient-accent: linear-gradient(135deg, hsl(199 75% 40%), hsl(220 16% 20%));
+    --gradient-card: linear-gradient(180deg, hsl(220 16% 10%), hsl(220 16% 8%));
+    --gradient-glow: radial-gradient(ellipse at center, hsl(199 89% 48% / 0.15), transparent 70%);
+    
+    --shadow-glow: 0 0 40px hsl(199 89% 48% / 0.15);
+    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.25);
+    --shadow-elevated: 0 8px 32px hsl(0 0% 0% / 0.35);
+  }
+
+  .dark {
+    --background: 220 16% 6%;
+    --foreground: 210 20% 95%;
+    --card: 220 16% 8%;
+    --card-foreground: 210 20% 95%;
+    --popover: 220 16% 10%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 220 16% 6%;
+    --secondary: 220 16% 12%;
+    --secondary-foreground: 210 20% 85%;
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 14% 55%;
+    --accent: 199 75% 40%;
+    --accent-foreground: 210 20% 95%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 20% 95%;
+    --border: 220 14% 16%;
+    --input: 220 14% 16%;
+    --ring: 199 89% 48%;
+    --sidebar-background: 220 16% 5%;
+    --sidebar-foreground: 215 14% 65%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 220 16% 6%;
+    --sidebar-accent: 220 16% 10%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 220 14% 12%;
+    --sidebar-ring: 199 89% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  code, pre {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50 rounded-xl;
+    box-shadow: var(--shadow-card);
+  }
+  
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300;
+  }
+  
+  .glass-card-hover:hover {
+    @apply border-primary/30 scale-[1.01];
+    box-shadow: var(--shadow-glow), var(--shadow-card);
+  }
+  
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+  
+  .glow-effect {
+    @apply relative;
+  }
+  
+  .glow-effect::before {
+    content: '';
+    @apply absolute inset-0 -z-10 opacity-0 transition-opacity duration-500;
+    background: var(--gradient-glow);
+    filter: blur(40px);
+  }
+  
+  .glow-effect:hover::before {
+    @apply opacity-100;
+  }
+  
+  .metric-card {
+    @apply glass-card p-5 flex flex-col gap-2;
+  }
+  
+  .metric-value {
+    @apply text-3xl font-bold tracking-tight;
+  }
+  
+  .metric-label {
+    @apply text-sm text-muted-foreground;
+  }
+  
+  .kanban-column {
+    @apply glass-card p-4 min-w-[280px] max-w-[280px] flex flex-col gap-3;
+  }
+  
+  .kanban-card {
+    @apply glass-card-hover p-4 cursor-grab active:cursor-grabbing;
+  }
+  
+  .kanban-card.dragging {
+    @apply opacity-50 scale-95;
+  }
+  
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground transition-all duration-200;
+  }
+  
+  .nav-item:hover {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+  }
+  
+  .nav-item.active {
+    @apply bg-primary/10 text-primary font-medium;
+  }
+  
+  .status-badge {
+    @apply px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .status-new { @apply bg-primary/20 text-primary; }
+  .status-open { @apply bg-accent/20 text-accent; }
+  .status-progress { @apply bg-warning/20 text-warning; }
+  .status-success { @apply bg-success/20 text-success; }
+  .status-lost { @apply bg-destructive/20 text-destructive; }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out forwards;
+  }
+  
+  .animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out forwards;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+  }
+  
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px hsl(199 89% 48% / 0.2); }
+  50% { box-shadow: 0 0 40px hsl(199 89% 48% / 0.4); }
+}
+
+/* Remove Lovable badge */
+a[href*="lovable.dev"],
+iframe[src*="lovable.dev"],
+div[style*="Edit with Lovable"],
+.lovable-badge,
+[class*="lovable"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  z-index: -9999 !important;
+}
