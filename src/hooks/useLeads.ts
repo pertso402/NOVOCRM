@@ -4,6 +4,7 @@ import { externalSupabase } from '@/lib/externalSupabase';
 import { supabase } from '@/integrations/supabase/client';
 import { Lead, Niche, LeadStatus, Temperatura, calcularProximoFollowup, deriveLeadStatus } from '@/types/leads';
 import { toast } from '@/hooks/use-toast';
+import { startOfDay } from 'date-fns';
 
 async function logStageTransition(leadId: string, fromStage: string | null, toStage: string) {
   try {
@@ -69,20 +70,23 @@ export function useFollowupsHoje(niche: Niche) {
   return useQuery({
     queryKey: ['followups-hoje', niche],
     queryFn: async () => {
-      const agora = new Date().toISOString();
       const { data, error } = await externalSupabase
         .from('leads')
         .select('*')
         .eq('niche', niche)
-        .not('stage', 'in', '(negocio_fechado,negocio_perdido)')
-        .or(`proximo_followup.is.null,proximo_followup.lte.${agora}`)
-        .order('temperatura', { ascending: true }) // frio -> morno -> quente (invertido em UI)
-        .order('proximo_followup', { ascending: true, nullsFirst: false });
+        .not('stage', 'in', '(negocio_fechado,negocio_perdido)');
 
       if (error) throw error;
+      
       const leads = (data || []) as Lead[];
-      // Reordena: quente primeiro
-      return leads.sort((a, b) => {
+      const today = startOfDay(new Date());
+      
+      return leads.filter(l => {
+        if (!l.proximo_followup) return false;
+        const date = new Date(l.proximo_followup);
+        if (isNaN(date.getTime())) return false;
+        return startOfDay(date).getTime() <= today.getTime();
+      }).sort((a, b) => {
         const ordem: Record<Temperatura, number> = { quente: 0, morno: 1, frio: 2 };
         return (ordem[a.temperatura] ?? 2) - (ordem[b.temperatura] ?? 2);
       });
@@ -96,7 +100,6 @@ export function useUpdateLead() {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Lead> }) => {
-      // Remove campos legados que não existem mais como colunas primárias no código
       const { ...cleanUpdates } = updates as any;
 
       const { data, error } = await externalSupabase
@@ -135,7 +138,6 @@ export function useUpdateLeadStatus() {
       currentStage?: string | null;
       temperatura?: Temperatura;
     }) => {
-      // Busca o lead atual para calcular próximo follow-up
       const { data: leadAtual } = await externalSupabase
         .from('leads')
         .select('tentativas_followup, temperatura')
