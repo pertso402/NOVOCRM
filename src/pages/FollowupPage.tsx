@@ -149,24 +149,42 @@ function LeadFollowupCard({
   const tempCfg = TEMPERATURA_CONFIG[lead.temperatura || 'frio'];
   const statusCfg = STATUS_CONFIG[deriveLeadStatus(lead)];
 
+  // Ação sugerida baseada no estágio atual
+  const getSugerido = (stage: string) => {
+    switch(stage) {
+      case 'novo': return 'Iniciar contato';
+      case 'canal_aberto': return 'Fazer perguntas / Qualificar';
+      case 'ligacao_feita': return 'Enviar vídeo/proposta';
+      case 'video_enviado': return 'Cobrar feedback do vídeo';
+      case 'interessado': return 'Marcar diagnóstico';
+      case 'follow_up': return 'Recuperar interesse';
+      case 'diagnostico_marcado': return 'Preparar reunião';
+      case 'fechamento_marcado': return 'Enviar contrato';
+      default: return 'Contactar';
+    }
+  };
+
   return (
     <div
       className={cn(
-        'glass-card p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-secondary/30 transition-colors',
-        atrasado && 'border-destructive/40'
+        'glass-card p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-secondary/30 transition-colors border-l-4',
+        atrasado ? 'border-l-destructive' : tempCfg.color.replace('text-', 'border-l-'),
+        atrasado && 'bg-destructive/5'
       )}
       onClick={onClick}
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className={cn('text-sm font-semibold', tempCfg.color)}>{tempCfg.emoji}</span>
-          <span className="font-medium text-sm truncate">{lead.nome_negocio}</span>
-          <span className={cn('status-badge text-xs shrink-0', statusCfg.color)}>{statusCfg.label}</span>
+          <span className={cn('text-xs font-bold uppercase py-0.5 px-1.5 rounded bg-secondary/50', tempCfg.color)}>
+            {tempCfg.label}
+          </span>
+          <span className="font-semibold text-sm truncate">{lead.nome_negocio}</span>
+          <span className={cn('status-badge text-[10px] shrink-0', statusCfg.color)}>{statusCfg.label}</span>
         </div>
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          {lead.nome_decisor && <span>{lead.nome_decisor}</span>}
+          <span className="text-primary/80 font-medium">✨ Sugerido: {getSugerido(lead.stage)}</span>
           {lead.proximo_followup && (
-            <span className={cn(atrasado && 'text-destructive')}>
+            <span className={cn(atrasado && 'text-destructive font-bold')}>
               <Clock className="w-3 h-3 inline mr-1" />
               {atrasado
                 ? `Atrasado ${formatDistanceToNow(new Date(lead.proximo_followup), { addSuffix: true, locale: ptBR })}`
@@ -178,45 +196,37 @@ function LeadFollowupCard({
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        {lead.url_whats && (
+        <div className="flex flex-col gap-1 sm:flex-row">
+          {lead.whats && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 gap-1.5 px-3"
+              onClick={(e) => {
+                e.stopPropagation();
+                const cleanPhone = lead.whats!.replace(/\D/g, '');
+                window.open(`https://wa.me/55${cleanPhone}`, '_blank');
+              }}
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">WhatsApp</span>
+            </Button>
+          )}
           <Button
             size="sm"
-            variant="outline"
-            className="h-8 w-8 p-0"
+            variant="secondary"
+            className="h-8 gap-1.5 px-3 font-semibold"
             onClick={(e) => {
               e.stopPropagation();
-              window.open(lead.url_whats!, '_blank');
+              onRegistrar();
             }}
           >
-            <MessageSquare className="w-3.5 h-3.5" />
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Já fiz</span>
           </Button>
-        )}
-        {lead.whats && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-8 w-8 p-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.open(`https://wa.me/55${lead.whats!.replace(/\D/g, '')}`, '_blank');
-            }}
-          >
-            <Phone className="w-3.5 h-3.5" />
-          </Button>
-        )}
-        <Button
-          size="sm"
-          variant="secondary"
-          className="h-8 gap-1 text-xs"
-          onClick={(e) => {
-            e.stopPropagation();
-            onRegistrar();
-          }}
-        >
-          <RefreshCw className="w-3 h-3" />
-          Feito
-        </Button>
+        </div>
       </div>
     </div>
   );
 }
+

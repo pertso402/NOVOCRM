@@ -44,15 +44,6 @@ export interface Lead {
   motivo_ganho: Record<string, any> | null;
   obs?: string | null;
 
-  // Booleans legados — mantidos apenas para compatibilidade de leitura
-  canal_aberto?: boolean;
-  interessado?: boolean;
-  follow_up?: boolean;
-  diagnostico_marcado?: boolean;
-  fechamento_marcado?: boolean;
-  negocio_fechado?: boolean;
-  negocio_perdido?: boolean;
-
   created_at: string;
   updated_at?: string;
 }
@@ -80,9 +71,9 @@ export interface MetricsByScript {
 }
 
 export const TEMPERATURA_CONFIG: Record<Temperatura, { label: string; color: string; emoji: string }> = {
-  frio:   { label: 'Frio',    color: 'text-blue-400',   emoji: '🧊' },
-  morno:  { label: 'Morno',   color: 'text-yellow-400', emoji: '🌡️' },
-  quente: { label: 'Quente',  color: 'text-red-400',    emoji: '🔥' },
+  frio:   { label: 'Frio 🧊',    color: 'text-blue-400',   emoji: '🧊' },
+  morno:  { label: 'Morno 🌡️',   color: 'text-yellow-400', emoji: '🌡️' },
+  quente: { label: 'Quente 🔥',  color: 'text-red-400',    emoji: '🔥' },
 };
 
 export const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string }> = {
@@ -132,16 +123,28 @@ export function calcularProximoFollowup(
 ): Date | null {
   if (stage === 'negocio_fechado' || stage === 'negocio_perdido') return null;
 
+  // Cadência inteligente: No início é mais frequente, depois espaça.
+  // Quente: Intenso (1, 1, 2, 3...)
+  // Morno: Moderado (2, 3, 5, 7...)
+  // Frio: Lento (5, 10, 15, 30...)
   const diasPorTemperatura: Record<Temperatura, number[]> = {
-    quente: [1, 2, 3],
-    morno:  [2, 4, 7],
-    frio:   [3, 7, 15],
+    quente: [1, 1, 2, 3, 5],
+    morno:  [2, 3, 5, 7, 10],
+    frio:   [5, 10, 15, 30],
   };
 
   const cadencia = diasPorTemperatura[temperatura];
   const diasAdicionar = cadencia[Math.min(tentativas, cadencia.length - 1)];
 
   const proximo = new Date();
+  
+  // Evita agendar no final de semana (opcional, mas recomendado para B2B)
   proximo.setDate(proximo.getDate() + diasAdicionar);
+  
+  const diaSemana = proximo.getDay(); // 0 = Domingo, 6 = Sábado
+  if (diaSemana === 0) proximo.setDate(proximo.getDate() + 1); // Domingo -> Segunda
+  else if (diaSemana === 6) proximo.setDate(proximo.getDate() + 2); // Sábado -> Segunda
+
   return proximo;
 }
+

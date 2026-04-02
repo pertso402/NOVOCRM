@@ -96,18 +96,12 @@ export function useUpdateLead() {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Lead> }) => {
-      // Remove campos legados que não existem mais como colunas primárias
-      const { ligacao_feita, video_enviado, ...cleanUpdates } = updates as any;
-
-      const payload: Record<string, unknown> = { ...cleanUpdates };
-
-      // Compatibilidade com colunas legadas no banco externo
-      if (ligacao_feita !== undefined) payload['Apresentação criada'] = ligacao_feita;
-      if (video_enviado !== undefined) payload['Documento/proposta Enviada'] = video_enviado;
+      // Remove campos legados que não existem mais como colunas primárias no código
+      const { ...cleanUpdates } = updates as any;
 
       const { data, error } = await externalSupabase
         .from('leads')
-        .update(payload)
+        .update(cleanUpdates)
         .eq('id', id)
         .select()
         .single();
@@ -157,16 +151,6 @@ export function useUpdateLeadStatus() {
         temperatura: tempAtual,
         ultimo_contato: new Date().toISOString(),
         proximo_followup: proximoFollowup ? proximoFollowup.toISOString() : null,
-        // Sincroniza booleans legados para não quebrar queries antigas
-        canal_aberto: ['canal_aberto','ligacao_feita','video_enviado','interessado','follow_up','diagnostico_marcado','fechamento_marcado','negocio_fechado'].includes(status),
-        interessado: ['interessado','follow_up','diagnostico_marcado','fechamento_marcado','negocio_fechado'].includes(status),
-        follow_up: ['follow_up','diagnostico_marcado','fechamento_marcado','negocio_fechado'].includes(status),
-        diagnostico_marcado: ['diagnostico_marcado','fechamento_marcado','negocio_fechado'].includes(status),
-        fechamento_marcado: ['fechamento_marcado','negocio_fechado'].includes(status),
-        negocio_fechado: status === 'negocio_fechado',
-        negocio_perdido: status === 'negocio_perdido',
-        'Apresentação criada': ['ligacao_feita','video_enviado','interessado','follow_up','diagnostico_marcado','fechamento_marcado','negocio_fechado'].includes(status),
-        'Documento/proposta Enviada': ['video_enviado','interessado','follow_up','diagnostico_marcado','fechamento_marcado','negocio_fechado'].includes(status),
       };
 
       const { data, error } = await externalSupabase
@@ -282,22 +266,13 @@ export function useCreateLead() {
 
   return useMutation({
     mutationFn: async (lead: Partial<Lead>) => {
-      const { ligacao_feita, video_enviado, ...cleanLead } = lead as any;
+      const { ...cleanLead } = lead as any;
 
       const payload: Record<string, unknown> = {
         ...cleanLead,
         stage: 'novo',
         temperatura: 'frio',
         tentativas_followup: 0,
-        canal_aberto: false,
-        interessado: false,
-        follow_up: false,
-        diagnostico_marcado: false,
-        fechamento_marcado: false,
-        negocio_fechado: false,
-        negocio_perdido: false,
-        'Apresentação criada': false,
-        'Documento/proposta Enviada': false,
       };
 
       const { data, error } = await externalSupabase
@@ -309,6 +284,7 @@ export function useCreateLead() {
       if (error) throw error;
       return data;
     },
+
     onSuccess: (data) => {
       if (data?.id) {
         logStageTransition(data.id, null, data.stage || 'novo');
